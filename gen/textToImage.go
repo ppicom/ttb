@@ -7,7 +7,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"io/ioutil"
 	"math"
 	"os"
 	"path"
@@ -32,7 +31,7 @@ type Config struct {
 func TextToImage(text string, c *Config) (string, error) {
 	// Load the font file
 	fontFname := path.Join(".", "asset", "Lora-VariableFont_wght.ttf")
-	fntBytes, err := ioutil.ReadFile(fontFname)
+	fntBytes, err := os.ReadFile(fontFname)
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", ErrBadFont, err)
 	}

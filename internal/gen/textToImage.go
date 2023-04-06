@@ -60,8 +60,9 @@ func TextToImage(text string, c *Config) (string, error) {
 	}
 
 	x := int(math.Round(0.1 * float64(img.Bounds().Max.X)))
-	y := int(fntFace.Metrics().Height / 64)
+	y := int(math.Round(0.1 * float64(img.Bounds().Max.Y)))
 	maxw := int(math.Round(0.9 * float64(img.Bounds().Max.X)))
+	maxh := int(math.Round(0.9 * float64(img.Bounds().Max.Y)))
 
 	for _, line := range splitText(text, fntFace, maxw) {
 
@@ -75,6 +76,10 @@ func TextToImage(text string, c *Config) (string, error) {
 		dr.DrawString(line)
 
 		y += int(fntFace.Metrics().Height / 64)
+
+		if y > maxh {
+			break
+		}
 	}
 
 	// Write the image to file

@@ -18,8 +18,11 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
+	"github.com/ppicom/ttb/internal/gen"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -28,17 +31,37 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "ttb",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:   "ttb <text>",
+	Short: "Make text into a background",
+	Long: `ttb allows you to create an image that contains the text you
+	indicated.
+	
+	Use at your discretion.`,
+	Args: cobra.MinimumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		text := strings.Join(args, " ")
+		w, err := cmd.Flags().GetInt("width")
+		if err != nil {
+			return err
+		}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+		h, err := cmd.Flags().GetInt("height")
+		if err != nil {
+			return err
+		}
+
+		return generateAction(os.Stdout, text, w, h)
+	},
+}
+
+func generateAction(out io.Writer, text string, width, height int) error {
+	imgFname, err := gen.TextToImage(text, &gen.Config{Width: width, Height: height})
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintln(out, imgFname)
+	return err
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -59,9 +82,8 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ttb.yaml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().IntP("width", "x", 400, "width of the picture")
+	rootCmd.Flags().IntP("height", "y", 400, "height of the picture")
 }
 
 // initConfig reads in config file and ENV variables if set.

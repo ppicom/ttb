@@ -48,7 +48,7 @@ func TextToImage(text string, c *Config) (string, error) {
 	draw.Draw(img, img.Bounds(), &image.Uniform{color.Black}, image.Point{}, draw.Src)
 
 	// Set up the font face
-	fntSize := 32
+	fntSize := 28
 	fntFace, err := opentype.NewFace(fnt, &opentype.FaceOptions{
 		Size:    float64(fntSize),
 		DPI:     72,
@@ -101,20 +101,23 @@ func TextToImage(text string, c *Config) (string, error) {
 
 func splitText(text string, fntFace font.Face, maxWidth int) []string {
 	var lines []string
-	words := strings.Fields(text)
-	line := ""
-	for _, word := range words {
-		if len(line)+len(word)+1 > maxWidth/fntFace.Metrics().XHeight.Round() {
-			lines = append(lines, line)
-			line = word
-		} else {
-			if line == "" {
+	paragraphs := strings.Split(text, "\n")
+	for _, p := range paragraphs {
+		words := strings.Fields(p)
+		line := ""
+		for _, word := range words {
+			if len(line)+len(word)+1 > int(float64(maxWidth/fntFace.Metrics().XHeight.Round())*0.9) {
+				lines = append(lines, line)
 				line = word
 			} else {
-				line += " " + word
+				if line == "" {
+					line = word
+				} else {
+					line += " " + word
+				}
 			}
 		}
+		lines = append(lines, line)
 	}
-	lines = append(lines, line)
 	return lines
 }

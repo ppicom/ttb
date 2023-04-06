@@ -17,6 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -37,9 +38,9 @@ var rootCmd = &cobra.Command{
 	indicated.
 	
 	Use at your discretion.`,
-	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		text := strings.Join(args, " ")
+		text := getText(args)
+
 		w, err := cmd.Flags().GetInt("width")
 		if err != nil {
 			return err
@@ -52,6 +53,22 @@ var rootCmd = &cobra.Command{
 
 		return generateAction(os.Stdout, text, w, h)
 	},
+}
+
+func getText(args []string) string {
+	if len(args) > 0 {
+		return strings.Join(args, " ")
+	}
+
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Split(bufio.ScanBytes)
+
+	text := ""
+	for scanner.Scan() {
+		text += scanner.Text()
+	}
+
+	return text
 }
 
 func generateAction(out io.Writer, text string, width, height int) error {
